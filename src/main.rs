@@ -7,10 +7,40 @@ use std::{env, fs, io};
 use clap::{App, Arg};
 
 fn main() {
+	let _matches = App::new("imgreduce")
+		.arg(
+			Arg::with_name("dir")
+			.help("Directory")
+			.takes_value(true)
+			.required(true)
+			.short("d")
+			)
+		.arg(
+			Arg::with_name("resize")
+			.help("Resolution to resize to")
+			.takes_value(true)
+			.short("r")
+			)
+		.arg(
+			Arg::with_name("format")
+			.help("Convert into a new file format")
+			.takes_value(true)
+			.possible_values(&[".jpg", ".jpeg", ".gif", ".png"])
+			.short("f")
+			)
+		.arg(
+			Arg::with_name("pretty")
+			.help("Display information")
+			.takes_value(false)
+			.short("p")
+			)
+		.get_matches();
+	let mut command = String::new();
+	command.push_str("convert");
     let result = which::which("convert").unwrap();
     //assert_eq!(result, PathBuf::from("/usr/bin/convert"));
-    let mut command = Command::new("convert");
-    command.execute_output().unwrap();
+    let mut run = Command::new(&command);
+    run.execute_output().unwrap();
     //println!("Hello, world!");
     //println!("{}", env::consts::OS);
     let os = env::consts::OS;
@@ -40,3 +70,4 @@ fn main() {
     	println!("{:?}", path);
     }*/
 }
+
