@@ -2,7 +2,7 @@ extern crate execute;
 use std::process::Command;
 use execute::Execute;
 use which::which;
-//use std::path::PathBuf;
+use std::path::Path/*Buf*/;
 use std::{env, fs, io};
 use clap::{App, Arg};
 
@@ -46,7 +46,8 @@ fn main() {
     let os = env::consts::OS;
     println!("{}", os);
     match os {
-    	_ if os == "windows" => println!("1"),
+    	_ if os == "windows" => find_binary_windows(),
+    	//_ if os == "windows" => println!("1"),
     	_ if os == "linux" => println!("2"),
     	_ => println!("0"),
     }
@@ -71,3 +72,14 @@ fn main() {
     }*/
 }
 
+fn find_binary_windows() {
+	let file = Path::new("C:\\Windows\\System32\\convert.exe").exists();
+	println!("{}", file);
+	if !file {
+		std::process::exit(0);
+	}
+}
+
+fn find_binary(os: String) {
+	println!("{}", os);
+}
