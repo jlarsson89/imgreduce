@@ -1,13 +1,12 @@
 extern crate execute;
 use std::process::Command;
 use execute::Execute;
-//use which::which;
 use std::path::Path/*Buf*/;
 use std::{env, fs, io};
 use clap::{App, Arg};
 
 fn main() {
-	let _matches = App::new("imgreduce")
+	let matches = App::new("imgreduce")
 		.arg(
 			Arg::with_name("dir")
 			.help("Directory")
@@ -47,25 +46,25 @@ fn main() {
         _ if os == "linux" => find_binary_linux(),
     	_ => println!("0"),
     }
-    let current_dir = env::current_dir();
+    if matches.is_present("dir") {
+    	if let Some(ref location) = matches.value_of("dir") {
+        println!("{}", location);
+	    for entry in fs::read_dir(location).unwrap() {
+	        let entry = entry.unwrap();
+	        let path = entry.path();
+	        if path.is_dir() {
+	            println!("{:?} is a dir", path);
+	        } else {
+	            println!("{:?} is a file", path);
+	        }
+	    }
+    }
+    }
+    /*let current_dir = env::current_dir();
     println!(
         "Entries modified in the last 24 hours in {:?}:",
         current_dir
-    );
-    /*for entry in fs::read_dir(".").unwrap() {
-        let entry = entry.unwrap();
-        let path = entry.path();
-        if path.is_dir() {
-            println!("{:?} is a dir", path);
-        } else {
-            println!("{:?} is a file", path);
-        }
-    }*/
-    /*for entry in fs::read_dir(provided_dir).unwrap() {
-    	let entry = entry.unwrap();
-    	let path = entry.path();
-    	println!("{:?}", path);
-    }*/
+    );*/
 }
 
 fn find_binary_windows() {
