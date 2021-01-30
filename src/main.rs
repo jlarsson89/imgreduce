@@ -48,17 +48,18 @@ fn main() {
     }
     if matches.is_present("dir") {
     	if let Some(ref location) = matches.value_of("dir") {
-        println!("{}", location);
-	    for entry in fs::read_dir(location).unwrap() {
-	        let entry = entry.unwrap();
-	        let path = entry.path();
-	        if path.is_dir() {
-	            println!("{:?} is a dir", path);
-	        } else {
-	            println!("{:?} is a file", path);
-	        }
-	    }
-    }
+	        println!("{}", location);
+		    for entry in fs::read_dir(location).unwrap() {
+		        let entry = entry.unwrap();
+		        let path = entry.path();
+		        if path.is_dir() {
+		            println!("{:?} is a dir", path);
+		        }
+		        else {
+		            println!("{:?} is a file", path);
+		        }
+		   	}
+    	}
     }
     /*let current_dir = env::current_dir();
     println!(
@@ -71,6 +72,8 @@ fn find_binary_windows() {
 	let file = Path::new("C:\\Windows\\System32\\convert.exe").exists();
 	println!("{}", file);
 	if !file {
+		println!("ImageMagick not installed, or not installed in expected path(C:\\Windows\\System32\\convert.exe).");
+		println!("You can download and install it here: https://imagemagick.org/script/download.php");
 		std::process::exit(0);
 	}
 }
