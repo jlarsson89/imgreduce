@@ -48,7 +48,8 @@ fn main() {
     match os {
     	_ if os == "windows" => find_binary_windows(),
     	//_ if os == "windows" => println!("1"),
-    	_ if os == "linux" => println!("2"),
+    	//_ if os == "linux" => println!("2"),
+        _ if os == "linux" => find_binary_linux(),
     	_ => println!("0"),
     }
     let current_dir = env::current_dir();
@@ -80,6 +81,10 @@ fn find_binary_windows() {
 	}
 }
 
-fn find_binary(os: String) {
-	println!("{}", os);
+fn find_binary_linux() {
+    let file = Path::new("/usr/bin/convert").exists();
+    println!("{}", file);
+    if !file {
+        std::process::exit(0);
+    }
 }
