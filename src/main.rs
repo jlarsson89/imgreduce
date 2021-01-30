@@ -1,7 +1,7 @@
 extern crate execute;
 use std::process::Command;
 use execute::Execute;
-use which::which;
+//use which::which;
 use std::path::Path/*Buf*/;
 use std::{env, fs, io};
 use clap::{App, Arg};
@@ -37,18 +37,13 @@ fn main() {
 		.get_matches();
 	let mut command = String::new();
 	command.push_str("convert");
-    let result = which::which("convert").unwrap();
+//    let result = which::which("convert").unwrap();
     //assert_eq!(result, PathBuf::from("/usr/bin/convert"));
-    let mut run = Command::new(&command);
-    run.execute_output().unwrap();
-    //println!("Hello, world!");
-    //println!("{}", env::consts::OS);
+    //let mut run = Command::new(&command);
+    //run.execute_output().unwrap();
     let os = env::consts::OS;
-    println!("{}", os);
     match os {
     	_ if os == "windows" => find_binary_windows(),
-    	//_ if os == "windows" => println!("1"),
-    	//_ if os == "linux" => println!("2"),
         _ if os == "linux" => find_binary_linux(),
     	_ => println!("0"),
     }
