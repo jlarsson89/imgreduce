@@ -45,7 +45,7 @@ fn main() {
 		println!("{:?}", i);
 	}*/
 	let mut count = 0;
-	let mut command_str = "convert.exe".to_string();
+	let mut command_str = "convert".to_string();
 	println!("{:?}", command_str);
 	let matches = App::new("imgreduce")
 		.arg(
@@ -83,7 +83,7 @@ fn main() {
     //run.execute_output().unwrap();
     let os = env::consts::OS;
     match os {
-    	_ if os == "windows" => find_binary_windows(),
+    	_ if os == "windows" => { find_binary_windows(); command_str.push_str(".exe"); },
         _ if os == "linux" => find_binary_linux(),
     	_ => println!("0"),
     }
