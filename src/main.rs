@@ -37,7 +37,7 @@ lazy_static! {
 }*/
 
 fn main() {
-	//let mut files = Vec::<Path>;
+	let mut files = Vec::new();
 	//let mut files = Vec::<&str>::new();
 	/*files.push("blah");
 	files.push("hlj");
@@ -88,9 +88,10 @@ fn main() {
     	_ => println!("0"),
     }
     if matches.is_present("resize") {
-    	let re = Regex::new(r"(([\d ]{1,5}[x][\d ]{1,5}))").unwrap();
+    	let _re = Regex::new(r"(([\d ]{1,5}[x][\d ]{1,5}))").unwrap();
     	let input = matches.value_of("resize").unwrap();
     	println!("{:?}", input);
+    	command_str.push_str(" -resize ");
     	command_str.push_str(input);
     }
 
@@ -108,17 +109,21 @@ fn main() {
 		        else {
 		            println!("{:?} is a file", path);
 		            count = count + 1;
-		            //files.push(path);
+		            let p = path.clone();
+		            files.push(p);
 		            //files.push(path.display().to_str());
 		            /*let mut x = */match path.to_str() {
         				None => panic!("new path is not a valid UTF-8 sequence"),
-        				//Some(s) => { files.push(s); },
+        				//Some(s) => files.push(s.clone()),
         				Some(s) => println!("new path is {}", s),
     				}//;
     				//files.push(x);
 		            //HASHMAP.insert(0, path.to_str();
 		        }
 		   	}
+    	}
+    	for i in files {
+    		println!("files: {:?}", i);
     	}
     }
     println!("{}", count);
