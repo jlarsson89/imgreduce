@@ -12,6 +12,8 @@ fn main() {
 	let mut files = Vec::new();
 	let mut count = 0;
 	let mut command_str = "convert".to_string();
+	let mut resize = "";
+	let mut os = "";
 	println!("{:?}", command_str);
 	let matches = App::new("imgreduce")
 		.arg(
@@ -54,9 +56,11 @@ fn main() {
     if matches.is_present("resize") {
     	let _re = Regex::new(r"(([\d ]{1,5}[x][\d ]{1,5}))").unwrap();
     	let input = matches.value_of("resize").unwrap();
-    	println!("{:?}", input);
-    	command_str.push_str(" -resize ");
-    	command_str.push_str(input);
+    	//println!("{:?}", input);
+    	resize = input.clone();
+    	println!("resize: {}", resize);
+    	//command_str.push_str(" -resize ");
+    	//command_str.push_str(input);
     }
 
     if matches.is_present("dir") {
@@ -75,12 +79,18 @@ fn main() {
 		        }
 		   	}
     	}
-    	for i in files {
+    	/*for i in files {
     		println!("file: {:?}", i);
-    	}
+    	}*/
     }
     println!("{}", count);
     println!("{:?}", command_str);
+    for i in files {
+    	println!("{:?}", i);
+    	if resize.len() >= 1 {
+    		convert_resize(command_str.clone(), i.into_os_string().into_string().unwrap(), resize.to_string());
+    	}
+    }
 }
 
 fn find_binary_windows() {
@@ -97,4 +107,28 @@ fn find_binary_linux() {
     if !file {
         std::process::exit(0);
     }
+}
+
+fn convert_resize(command: String, file: String, resize: String) {
+	println!("running convert_resize({}, {}, {})", command, file, resize);
+}
+
+fn convert_reformat(file: String, format: String) {
+
+}
+
+fn convert_resize_reformat(file: String, resize: String, format: String) {
+
+}
+
+fn pretty_convert_resize(i: u8, file: String, resize: String) {
+
+}
+
+fn pretty_convert_reformat(i: u8, file: String, format: String) {
+
+}
+
+fn pretty_convert_resize_reformat(i: u8, file: String, resize: String, format: String) {
+	
 }
