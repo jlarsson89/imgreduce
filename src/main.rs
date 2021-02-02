@@ -13,7 +13,10 @@ fn main() {
 	let mut count = 0;
 	let mut command_str = "convert".to_string();
 	let mut resize = "";
+	let mut pretty = false;
+	let mut format = "";
 	let mut os = "";
+	let file_format = Regex::new(r"^.*\.(jpg|jpeg|gif|png)$").unwrap();
 	println!("{:?}", command_str);
 	let matches = App::new("imgreduce")
 		.arg(
@@ -56,19 +59,13 @@ fn main() {
     if matches.is_present("resize") {
     	let re = Regex::new(r"(([\d ]{1,5}[x][\d ]{1,5}))").unwrap();
     	let input = matches.value_of("resize").unwrap();
-    	//println!("{:?}", input);
     	if re.is_match(input) {
-    		//println!("{:?}", input);
     		resize = input.clone();
     	}
     	else {
     		println!("Invalid resolution provided.");
     		std::process::exit(0);
     	}
-    	//resize = input.clone();
-    	//println!("resize: {}", resize);
-    	//command_str.push_str(" -resize ");
-    	//command_str.push_str(input);
     }
 
     if matches.is_present("dir") {
@@ -77,12 +74,10 @@ fn main() {
 		        let entry = entry.unwrap();
 		        let path = entry.path();
 		        if path.is_dir() {
-		            //println!("{:?} is a dir", path);
 		        }
 		        else {
-		            let re = Regex::new(r"^.*\.(jpg|jpeg|gif|png)$").unwrap();
 		            let p = path.clone().into_os_string().into_string().unwrap();
-		            if re.is_match(&p) {
+		            if file_format.is_match(&p) {
 		            	println!("matches");
 		            	count = count + 1;
 		            	files.push(p);
@@ -90,18 +85,31 @@ fn main() {
 		        }
 		   	}
     	}
-    	for i in files {
-    		println!("file: {:?}", i);
+    }
+
+    if matches.is_present("pretty") {
+    	pretty = true;
+    	println!("pretty is now true");
+    }
+
+    if matches.is_present("format") {
+    	let input = matches.value_of("format").unwrap();
+    	if file_format.is_match(input) {
+    		println!("{:?}", input);
+    		format = input.clone();
+    	}
+    	else {
+    		println!("Invalid format provided.");
+    		std::process::exit(0);
     	}
     }
     println!("{}", count);
     println!("{:?}", command_str);
-    /*for i in files {
+    println!("{:?}", pretty);
+    for (i, x) in files.iter().enumerate() {
     	println!("{:?}", i);
-    	if resize.len() >= 1 {
-    		convert(command_str.clone(), i.into_os_string().into_string().unwrap(), resize.to_string(), count);
-    	}
-    }*/
+    	convert(command_str.clone(), x.to_string(), resize.to_string(), i+1, pretty, format.to_string());
+    }
 }
 
 fn find_binary_windows() {
@@ -120,8 +128,8 @@ fn find_binary_linux() {
     }
 }
 
-fn convert(command: String, file: String, resize: String, count: i32) {
+fn convert(command: String, file: String, resize: String, count: usize, pretty: bool, format: String) {
 	// rewrite to be one convert function taking default values
 	// test executing
-	println!("running convert_resize({}, {}, {})", command, file, resize);
+	println!("running convert({} {} {} {} {})", command, file, resize, count, format);
 }
