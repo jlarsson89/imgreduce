@@ -61,6 +61,10 @@ fn main() {
     		//println!("{:?}", input);
     		resize = input.clone();
     	}
+    	else {
+    		println!("Invalid resolution provided.");
+    		std::process::exit(0);
+    	}
     	//resize = input.clone();
     	//println!("resize: {}", resize);
     	//command_str.push_str(" -resize ");
@@ -76,30 +80,28 @@ fn main() {
 		            //println!("{:?} is a dir", path);
 		        }
 		        else {
-		            //println!("{:?} is a file", path);
-		            // filter out non-images
 		            let re = Regex::new(r"^.*\.(jpg|jpeg|gif|png)$").unwrap();
-		            /*if re.is_match(path) {
-		            	println!("{:?}", path);
-		            }*/
-		            count = count + 1;
-		            let p = path.clone();
-		            files.push(p);
+		            let p = path.clone().into_os_string().into_string().unwrap();
+		            if re.is_match(&p) {
+		            	println!("matches");
+		            	count = count + 1;
+		            	files.push(p);
+		            }
 		        }
 		   	}
     	}
-    	/*for i in files {
+    	for i in files {
     		println!("file: {:?}", i);
-    	}*/
+    	}
     }
     println!("{}", count);
     println!("{:?}", command_str);
-    for i in files {
+    /*for i in files {
     	println!("{:?}", i);
     	if resize.len() >= 1 {
-    		convert_resize(command_str.clone(), i.into_os_string().into_string().unwrap(), resize.to_string());
+    		convert(command_str.clone(), i.into_os_string().into_string().unwrap(), resize.to_string(), count);
     	}
-    }
+    }*/
 }
 
 fn find_binary_windows() {
@@ -118,28 +120,8 @@ fn find_binary_linux() {
     }
 }
 
-fn convert_resize(command: String, file: String, resize: String) {
+fn convert(command: String, file: String, resize: String, count: i32) {
 	// rewrite to be one convert function taking default values
 	// test executing
 	println!("running convert_resize({}, {}, {})", command, file, resize);
-}
-
-fn convert_reformat(file: String, format: String) {
-
-}
-
-fn convert_resize_reformat(file: String, resize: String, format: String) {
-
-}
-
-fn pretty_convert_resize(i: u8, file: String, resize: String) {
-
-}
-
-fn pretty_convert_reformat(i: u8, file: String, format: String) {
-
-}
-
-fn pretty_convert_resize_reformat(i: u8, file: String, resize: String, format: String) {
-	
 }
