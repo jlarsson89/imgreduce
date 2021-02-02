@@ -54,11 +54,15 @@ fn main() {
     	_ => println!("0"),
     }
     if matches.is_present("resize") {
-    	let _re = Regex::new(r"(([\d ]{1,5}[x][\d ]{1,5}))").unwrap();
+    	let re = Regex::new(r"(([\d ]{1,5}[x][\d ]{1,5}))").unwrap();
     	let input = matches.value_of("resize").unwrap();
     	//println!("{:?}", input);
-    	resize = input.clone();
-    	println!("resize: {}", resize);
+    	if re.is_match(input) {
+    		//println!("{:?}", input);
+    		resize = input.clone();
+    	}
+    	//resize = input.clone();
+    	//println!("resize: {}", resize);
     	//command_str.push_str(" -resize ");
     	//command_str.push_str(input);
     }
@@ -73,6 +77,11 @@ fn main() {
 		        }
 		        else {
 		            //println!("{:?} is a file", path);
+		            // filter out non-images
+		            let re = Regex::new(r"^.*\.(jpg|jpeg|gif|png)$").unwrap();
+		            /*if re.is_match(path) {
+		            	println!("{:?}", path);
+		            }*/
 		            count = count + 1;
 		            let p = path.clone();
 		            files.push(p);
@@ -110,6 +119,8 @@ fn find_binary_linux() {
 }
 
 fn convert_resize(command: String, file: String, resize: String) {
+	// rewrite to be one convert function taking default values
+	// test executing
 	println!("running convert_resize({}, {}, {})", command, file, resize);
 }
 
