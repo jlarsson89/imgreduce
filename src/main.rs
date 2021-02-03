@@ -9,14 +9,15 @@ use clap::{App, Arg};
 use regex::Regex;
 
 fn main() {
-	let mut files = Vec::new();
+   	let mut files = Vec::new();
 	let mut count = 0;
-	let mut command_str = "convert".to_string();
+	let mut command_str = "".to_string();
 	let mut resize = "";
 	let mut pretty = false;
 	let mut format = "";
 	let mut os = "";
 	let file_format = Regex::new(r"^.*\.(jpg|jpeg|gif|png)$").unwrap();
+	//let convert_binary_win = Regex::new(r"^.*)
 	//println!("{:?}", command_str);
 	let matches = App::new("imgreduce")
 		.arg(
@@ -52,7 +53,7 @@ fn main() {
     //run.execute_output().unwrap();
     let os = env::consts::OS;
     match os {
-    	_ if os == "windows" => { find_binary_windows(); command_str.push_str(".exe"); },
+    	_ if os == "windows" => { command_str = find_binary_windows(); },
         _ if os == "linux" => find_binary_linux(),
     	_ => println!("0"),
     }
@@ -112,21 +113,30 @@ fn main() {
     	}
     }
     //println!("{}", count);
-    //println!("{:?}", command_str);
+    println!("{:?}", command_str);
     //println!("{:?}", pretty);
     for (i, x) in files.iter().enumerate() {
     	println!("{}: {:?}", i+1, x);
-    	convert(os.to_string(), command_str.clone(), x.to_string(), resize.to_string(), i+1, pretty, format.to_string());
+    	//convert(os.to_string(), command_str.clone(), x.to_string(), resize.to_string(), i+1, pretty, format.to_string());
     }
 }
 
-fn find_binary_windows() {
-	let file = Path::new("C:/Windows/System32/convert.exe").exists();
-	if !file {
-		println!("ImageMagick not installed, or not installed in expected path(C:/Windows/System32/convert.exe).");
-		println!("You can download and install it here: https://imagemagick.org/script/download.php");
-		std::process::exit(0);
-	}
+fn find_binary_windows() -> String {
+	let mut find = Command::new("cmd")
+        .args(&["/C", "where convert.exe"])
+        .output()
+        .expect("failed to execute process");
+    let find = String::from_utf8(find.stdout).unwrap();
+    let mut n = "";
+    for i in find.split("\n") {
+    	let mut n = i.to_string();
+    	n.pop();
+    	if n.contains("ImageMagick") {
+	    	return n.to_string()
+	    }
+    }
+    std::process::exit(0);
+    n.to_string()
 }
 
 fn find_binary_linux() {
