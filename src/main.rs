@@ -79,8 +79,16 @@ fn main() {
 		            let p = path.clone().into_os_string().into_string().unwrap();
 		            if file_format.is_match(&p) {
 		            	//println!("matches");
-		            	count = count + 1;
-		            	files.push(p);
+		            	if os == "windows" {
+		            		let np = p.replace(r"\", "/");
+		            		//println!("{:?}", np);
+		            		count = count + 1;
+		            		files.push(np);
+		            	}
+		            	else {
+		            		count = count + 1;
+		            		files.push(p);
+		            	}
 		            }
 		        }
 		   	}
@@ -107,7 +115,7 @@ fn main() {
     //println!("{:?}", command_str);
     //println!("{:?}", pretty);
     for (i, x) in files.iter().enumerate() {
-    	println!("{:?}", i);
+    	println!("{}: {:?}", i+1, x);
     	convert(command_str.clone(), x.to_string(), resize.to_string(), i+1, pretty, format.to_string());
     }
 }
@@ -139,10 +147,30 @@ fn convert(command: String, file: String, resize: String, count: usize, pretty: 
 	cmd.push_str(" ");
 	cmd.push_str(&file);
 	println!("{:?}", cmd);
-	let mut run = Command::new(&cmd);
+	//let mut run = Command::new(&cmd);
+	//let mut cmd = command;
+	let mut old_file = file;
+	let mut new_file = if format.chars().count() > 1 { format } else { String::new() };
+	println!("old_file: {}, new_file: {}", old_file, new_file);
+	Command::new("cmd")
+		.args(&["/C", &cmd])
+		.spawn()
+		.expect("failed to execute process");
+	/*Command::new("cmd")
+    .args(&["/C", "echo hello!"])
+    .spawn()
+    .expect("echo command failed to start");*/
+	/*let mut run = Command::new(command)
+		.args(&["-resize", &resize, &old_file, &new_file])
+		.output()
+		.expect("failed to exectute process");*/
+							//.arg(["-resize"], [resize.clone()]);
+							//.arg(&resize)
+							//.arg(&old_file)
+							//.arg(&old_file);
 	//println!("{}", command);
 	//let mut run = Command::new(command);
 	//let mut run = Command::new(&command.clone()).arg("-resize").arg(&resize.clone()).arg(&file.clone()).arg(&file.clone());
-    run.execute_output().unwrap();
+    //run.execute_output().unwrap();
 	//println!("running convert({} {} {} {} {})", command, file, resize, count, format);
 }
