@@ -17,7 +17,7 @@ fn main() {
 	let mut format = "";
 	let mut os = "";
 	let file_format = Regex::new(r"^.*\.(jpg|jpeg|gif|png)$").unwrap();
-	println!("{:?}", command_str);
+	//println!("{:?}", command_str);
 	let matches = App::new("imgreduce")
 		.arg(
 			Arg::with_name("dir")
@@ -78,7 +78,7 @@ fn main() {
 		        else {
 		            let p = path.clone().into_os_string().into_string().unwrap();
 		            if file_format.is_match(&p) {
-		            	println!("matches");
+		            	//println!("matches");
 		            	count = count + 1;
 		            	files.push(p);
 		            }
@@ -103,9 +103,9 @@ fn main() {
     		std::process::exit(0);
     	}
     }
-    println!("{}", count);
-    println!("{:?}", command_str);
-    println!("{:?}", pretty);
+    //println!("{}", count);
+    //println!("{:?}", command_str);
+    //println!("{:?}", pretty);
     for (i, x) in files.iter().enumerate() {
     	println!("{:?}", i);
     	convert(command_str.clone(), x.to_string(), resize.to_string(), i+1, pretty, format.to_string());
@@ -131,5 +131,18 @@ fn find_binary_linux() {
 fn convert(command: String, file: String, resize: String, count: usize, pretty: bool, format: String) {
 	// rewrite to be one convert function taking default values
 	// test executing
-	println!("running convert({} {} {} {} {})", command, file, resize, count, format);
+	let mut cmd = command;
+	cmd.push_str(" -resize ");
+	cmd.push_str(&resize);
+	cmd.push_str(" ");
+	cmd.push_str(&file);
+	cmd.push_str(" ");
+	cmd.push_str(&file);
+	println!("{:?}", cmd);
+	let mut run = Command::new(&cmd);
+	//println!("{}", command);
+	//let mut run = Command::new(command);
+	//let mut run = Command::new(&command.clone()).arg("-resize").arg(&resize.clone()).arg(&file.clone()).arg(&file.clone());
+    run.execute_output().unwrap();
+	//println!("running convert({} {} {} {} {})", command, file, resize, count, format);
 }
