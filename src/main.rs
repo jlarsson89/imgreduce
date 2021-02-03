@@ -116,7 +116,7 @@ fn main() {
     //println!("{:?}", pretty);
     for (i, x) in files.iter().enumerate() {
     	println!("{}: {:?}", i+1, x);
-    	convert(command_str.clone(), x.to_string(), resize.to_string(), i+1, pretty, format.to_string());
+    	convert(os.to_string(), command_str.clone(), x.to_string(), resize.to_string(), i+1, pretty, format.to_string());
     }
 }
 
@@ -136,7 +136,7 @@ fn find_binary_linux() {
     }
 }
 
-fn convert(command: String, file: String, resize: String, count: usize, pretty: bool, format: String) {
+fn convert(os: String, command: String, file: String, resize: String, count: usize, pretty: bool, format: String) {
 	// rewrite to be one convert function taking default values
 	// test executing
 	let mut cmd = command;
@@ -152,10 +152,18 @@ fn convert(command: String, file: String, resize: String, count: usize, pretty: 
 	let mut old_file = file;
 	let mut new_file = if format.chars().count() > 1 { format } else { String::new() };
 	println!("old_file: {}, new_file: {}", old_file, new_file);
-	Command::new("cmd")
-		.args(&["/C", &cmd])
-		.spawn()
-		.expect("failed to execute process");
+	if os == "windows" {
+		Command::new("cmd")
+			.args(&["/C", &cmd])
+			.spawn()
+			.expect("failed to execute process");
+	}
+	else {
+		Command::new("sh")
+			.args(&["-c", &cmd])
+			.spawn()
+			.expect("failed to execute process");
+	}
 	/*Command::new("cmd")
     .args(&["/C", "echo hello!"])
     .spawn()
