@@ -1,10 +1,7 @@
-extern crate execute;
 extern crate regex;
-use std::collections::HashMap;
 use std::process::Command;
-use execute::Execute;
-use std::path::Path/*Buf*/;
-use std::{env, fs, io};
+use std::path::Path;
+use std::{env, fs};
 use clap::{App, Arg};
 use regex::Regex;
 
@@ -15,10 +12,7 @@ fn main() {
 	let mut resize = "";
 	let mut pretty = false;
 	let mut format = "";
-	let mut os = "";
 	let file_format = Regex::new(r"^.*\.(jpg|jpeg|gif|png)$").unwrap();
-	//let convert_binary_win = Regex::new(r"^.*)
-	//println!("{:?}", command_str);
 	let matches = App::new("imgreduce")
 		.arg(
 			Arg::with_name("dir")
@@ -47,14 +41,10 @@ fn main() {
 			.short("p")
 			)
 		.get_matches();
-	//let mut command = String::new();
-	//command.push_str("convert");
-    //let mut run = Command::new(&command);
-    //run.execute_output().unwrap();
     let os = env::consts::OS;
     match os {
     	_ if os == "windows" => { command_str = find_binary_windows(); },
-        _ if os == "linux" => find_binary_linux(),
+        _ if os == "linux" => { command_str = find_binary_linux(); },
     	_ => println!("0"),
     }
     if matches.is_present("resize") {
@@ -68,7 +58,6 @@ fn main() {
     		std::process::exit(0);
     	}
     }
-
     if matches.is_present("dir") {
     	if let Some(ref location) = matches.value_of("dir") {
 		    for entry in fs::read_dir(location).unwrap() {
@@ -79,10 +68,8 @@ fn main() {
 		        else {
 		            let p = path.clone().into_os_string().into_string().unwrap();
 		            if file_format.is_match(&p) {
-		            	//println!("matches");
 		            	if os == "windows" {
 		            		let np = p.replace(r"\", "/");
-		            		//println!("{:?}", np);
 		            		count = count + 1;
 		            		files.push(np);
 		            	}
@@ -95,12 +82,10 @@ fn main() {
 		   	}
     	}
     }
-
     if matches.is_present("pretty") {
     	pretty = true;
     	println!("pretty is now true");
     }
-
     if matches.is_present("format") {
     	let input = matches.value_of("format").unwrap();
     	if file_format.is_match(input) {
@@ -117,12 +102,13 @@ fn main() {
     //println!("{:?}", pretty);
     for (i, x) in files.iter().enumerate() {
     	println!("{}: {:?}", i+1, x);
-    	//convert(os.to_string(), command_str.clone(), x.to_string(), resize.to_string(), i+1, pretty, format.to_string());
+    	convert(os.to_string(), command_str.clone(), x.to_string(), 
+    		resize.to_string(), i+1, pretty, format.to_string());
     }
 }
 
 fn find_binary_windows() -> String {
-	let mut find = Command::new("cmd")
+	let find = Command::new("cmd")
         .args(&["/C", "where convert.exe"])
         .output()
         .expect("failed to execute process");
@@ -136,20 +122,20 @@ fn find_binary_windows() -> String {
 	    }
     }
     std::process::exit(0);
-    n.to_string()
+    //n.to_string()
 }
 
-fn find_binary_linux() {
+fn find_binary_linux() -> String {
     let file = Path::new("/usr/bin/convert").exists();
     if !file {
         std::process::exit(0);
     }
+    "/usr/bin/convert".to_string()
 }
 
 fn convert(os: String, command: String, file: String, resize: String, count: usize, pretty: bool, format: String) {
-	// rewrite to be one convert function taking default values
 	// test executing
-	let mut cmd = command;
+	/*let mut cmd = command;
 	cmd.push_str(" -resize ");
 	cmd.push_str(&resize);
 	cmd.push_str(" ");
@@ -161,18 +147,31 @@ fn convert(os: String, command: String, file: String, resize: String, count: usi
 	//let mut cmd = command;
 	let mut old_file = file;
 	let mut new_file = if format.chars().count() > 1 { format } else { String::new() };
-	println!("old_file: {}, new_file: {}", old_file, new_file);
+	println!("old_file: {}, new_file: {}", old_file, new_file);*/
+	println!("{}", &resize.chars().count());
 	if os == "windows" {
-		Command::new("cmd")
+		if &resize.chars().count() > &1 {
+			Command::new(&command)
+				.args(&["-resize", &resize, &file, &file])
+				.output()
+				.expect("failed to execute process");
+		}
+		/*Command::new("cmd")
 			.args(&["/C", &cmd])
 			.spawn()
-			.expect("failed to execute process");
+			.expect("failed to execute process");*/
 	}
 	else {
-		Command::new("sh")
+		/*Command::new("sh")
 			.args(&["-c", &cmd])
 			.spawn()
-			.expect("failed to execute process");
+			.expect("failed to execute process");*/
+		if &resize.chars().count() > &1 {
+			Command::new(&command)
+				.args(&["-resize", &resize, &file, &file])
+				.output()
+				.expect("failed to execute process");
+		}
 	}
 	/*Command::new("cmd")
     .args(&["/C", "echo hello!"])
