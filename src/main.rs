@@ -148,11 +148,28 @@ fn convert(os: String, command: String, file: String, resize: String, count: usi
 	let mut old_file = file;
 	let mut new_file = if format.chars().count() > 1 { format } else { String::new() };
 	println!("old_file: {}, new_file: {}", old_file, new_file);*/
-	println!("{}", &resize.chars().count());
+	//let file_format = Regex::new(r"^.*\.(jpg|jpeg|gif|png)$").unwrap();
+	//let mut new_file = "";
+	let x: Vec<_> = file.split(".").collect();
+	println!("{:?}", x[0]);
+	let mut n = x[0].to_string();
+	n.push_str(&format);
+	let new_file = &n;
+	//println!("{}", &new_file);
+	//println!("resize: {}", &resize.chars().count());
+	//println!("format: {}", &format.chars().count());
 	if os == "windows" {
 		if &resize.chars().count() > &1 {
+			println!("converting");
 			Command::new(&command)
 				.args(&["-resize", &resize, &file, &file])
+				.output()
+				.expect("failed to execute process");
+		}
+		if &format.chars().count() > &1 {
+			println!("also converting to {}", &format);
+			Command::new(&command)
+				.args(&[&file, &new_file.to_string()])
 				.output()
 				.expect("failed to execute process");
 		}
