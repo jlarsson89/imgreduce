@@ -148,13 +148,16 @@ fn convert(os: String, command: String, file: String, resize: String, count: usi
 	let mut old_file = file;
 	let mut new_file = if format.chars().count() > 1 { format } else { String::new() };
 	println!("old_file: {}, new_file: {}", old_file, new_file);*/
-	//let file_format = Regex::new(r"^.*\.(jpg|jpeg|gif|png)$").unwrap();
+	let file_format = Regex::new(r"\.(jpg|jpeg|gif|png)$").unwrap();
+	let mut new_file = file_format.replace(&file, "").to_string();
+	new_file.push_str(&format);
+	println!("{}", new_file);
 	//let mut new_file = "";
-	let x: Vec<_> = file.split(".").collect();
-	println!("{:?}", x[0]);
-	let mut n = x[0].to_string();
-	n.push_str(&format);
-	let new_file = &n;
+	//let x: Vec<_> = file.split(".").collect();
+	//println!("{:?}", x[0]);
+	//let mut n = x[0].to_string();
+	//n.push_str(&format);
+	//let new_file = &n;
 	//println!("{}", &new_file);
 	//println!("resize: {}", &resize.chars().count());
 	//println!("format: {}", &format.chars().count());
