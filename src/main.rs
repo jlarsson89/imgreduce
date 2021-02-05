@@ -161,7 +161,7 @@ fn convert(os: String, command: String, file: String, resize: String, count: usi
 	//println!("{}", &new_file);
 	//println!("resize: {}", &resize.chars().count());
 	//println!("format: {}", &format.chars().count());
-	if os == "windows" {
+	/*if os == "windows" {*/
 		if &resize.chars().count() > &1 {
 			println!("converting");
 			Command::new(&command)
@@ -175,12 +175,14 @@ fn convert(os: String, command: String, file: String, resize: String, count: usi
 				.args(&[&file, &new_file.to_string()])
 				.output()
 				.expect("failed to execute process");
+			println!("removing {}", &file);
+			fs::remove_file(&file);
 		}
 		/*Command::new("cmd")
 			.args(&["/C", &cmd])
 			.spawn()
 			.expect("failed to execute process");*/
-	}
+	/*}*/
 	else {
 		/*Command::new("sh")
 			.args(&["-c", &cmd])
