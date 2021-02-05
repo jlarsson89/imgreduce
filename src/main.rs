@@ -134,82 +134,24 @@ fn find_binary_linux() -> String {
 }
 
 fn convert(os: String, command: String, file: String, resize: String, count: usize, pretty: bool, format: String) {
-	// test executing
-	/*let mut cmd = command;
-	cmd.push_str(" -resize ");
-	cmd.push_str(&resize);
-	cmd.push_str(" ");
-	cmd.push_str(&file);
-	cmd.push_str(" ");
-	cmd.push_str(&file);
-	println!("{:?}", cmd);
-	//let mut run = Command::new(&cmd);
-	//let mut cmd = command;
-	let mut old_file = file;
-	let mut new_file = if format.chars().count() > 1 { format } else { String::new() };
-	println!("old_file: {}, new_file: {}", old_file, new_file);*/
 	let file_format = Regex::new(r"\.(?i)(jpg|jpeg|gif|png)$").unwrap();
 	let mut new_file = file_format.replace(&file, "").to_string();
 	new_file.push_str(&format);
 	println!("{}", new_file);
-	//let mut new_file = "";
-	//let x: Vec<_> = file.split(".").collect();
-	//println!("{:?}", x[0]);
-	//let mut n = x[0].to_string();
-	//n.push_str(&format);
-	//let new_file = &n;
-	//println!("{}", &new_file);
-	//println!("resize: {}", &resize.chars().count());
-	//println!("format: {}", &format.chars().count());
-	/*if os == "windows" {*/
-		if &resize.chars().count() > &1 {
-			println!("converting");
-			Command::new(&command)
-				.args(&["-resize", &resize, &file, &file])
-				.output()
-				.expect("failed to execute process");
-		}
-		if &format.chars().count() > &1 {
-			println!("also converting to {}", &format);
-			Command::new(&command)
-				.args(&[&file, &new_file.to_string()])
-				.output()
-				.expect("failed to execute process");
-			println!("removing {}", &file);
-			fs::remove_file(&file);
-		}
-		/*Command::new("cmd")
-			.args(&["/C", &cmd])
-			.spawn()
-			.expect("failed to execute process");*/
-	/*}*/
-	else {
-		/*Command::new("sh")
-			.args(&["-c", &cmd])
-			.spawn()
-			.expect("failed to execute process");*/
-		if &resize.chars().count() > &1 {
-			Command::new(&command)
-				.args(&["-resize", &resize, &file, &file])
-				.output()
-				.expect("failed to execute process");
-		}
+	if &resize.chars().count() > &1 {
+		println!("converting");
+		Command::new(&command)
+			.args(&["-resize", &resize, &file, &file])
+			.output()
+			.expect("failed to execute process");
 	}
-	/*Command::new("cmd")
-    .args(&["/C", "echo hello!"])
-    .spawn()
-    .expect("echo command failed to start");*/
-	/*let mut run = Command::new(command)
-		.args(&["-resize", &resize, &old_file, &new_file])
-		.output()
-		.expect("failed to exectute process");*/
-							//.arg(["-resize"], [resize.clone()]);
-							//.arg(&resize)
-							//.arg(&old_file)
-							//.arg(&old_file);
-	//println!("{}", command);
-	//let mut run = Command::new(command);
-	//let mut run = Command::new(&command.clone()).arg("-resize").arg(&resize.clone()).arg(&file.clone()).arg(&file.clone());
-    //run.execute_output().unwrap();
-	//println!("running convert({} {} {} {} {})", command, file, resize, count, format);
+	if &format.chars().count() > &1 {
+		println!("also converting to {}", &format);
+		Command::new(&command)
+			.args(&[&file, &new_file.to_string()])
+			.output()
+			.expect("failed to execute process");
+		println!("removing {}", &file);
+		fs::remove_file(&file);
+	}
 }
