@@ -12,7 +12,7 @@ fn main() {
 	let mut resize = "";
 	let mut pretty = false;
 	let mut format = "";
-	let file_format = Regex::new(r"^.*\.(jpg|jpeg|gif|png)$").unwrap();
+	let file_format = Regex::new(r"^.*\.(?i)(jpg|jpeg|gif|png)$").unwrap();
 	let matches = App::new("imgreduce")
 		.arg(
 			Arg::with_name("dir")
@@ -148,7 +148,7 @@ fn convert(os: String, command: String, file: String, resize: String, count: usi
 	let mut old_file = file;
 	let mut new_file = if format.chars().count() > 1 { format } else { String::new() };
 	println!("old_file: {}, new_file: {}", old_file, new_file);*/
-	let file_format = Regex::new(r"\.(jpg|jpeg|gif|png)$").unwrap();
+	let file_format = Regex::new(r"\.(?i)(jpg|jpeg|gif|png)$").unwrap();
 	let mut new_file = file_format.replace(&file, "").to_string();
 	new_file.push_str(&format);
 	println!("{}", new_file);
