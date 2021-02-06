@@ -84,12 +84,10 @@ fn main() {
     }
     if matches.is_present("pretty") {
     	pretty = true;
-    	println!("pretty is now true");
     }
     if matches.is_present("format") {
     	let input = matches.value_of("format").unwrap();
     	if file_format.is_match(input) {
-    		println!("{:?}", input);
     		format = input.clone();
     	}
     	else {
@@ -97,12 +95,8 @@ fn main() {
     		std::process::exit(0);
     	}
     }
-    //println!("{}", count);
-    println!("{:?}", command_str);
-    //println!("{:?}", pretty);
     for (i, x) in files.iter().enumerate() {
-    	println!("{}: {:?}", i+1, x);
-    	convert(os.to_string(), command_str.clone(), x.to_string(), 
+    	convert(command_str.clone(), x.to_string(), 
     		resize.to_string(), i+1, pretty, format.to_string());
     }
 }
@@ -133,25 +127,41 @@ fn find_binary_linux() -> String {
     "/usr/bin/convert".to_string()
 }
 
-fn convert(os: String, command: String, file: String, resize: String, count: usize, pretty: bool, format: String) {
+fn convert(command: String, file: String, resize: String, count: usize, pretty: bool, format: String) {
 	let file_format = Regex::new(r"\.(?i)(jpg|jpeg|gif|png)$").unwrap();
 	let mut new_file = file_format.replace(&file, "").to_string();
 	new_file.push_str(&format);
-	println!("{}", new_file);
 	if &resize.chars().count() > &1 {
-		println!("converting");
-		Command::new(&command)
-			.args(&["-resize", &resize, &file, &file])
-			.output()
-			.expect("failed to execute process");
+		if pretty == true {
+			println!("({}): Resizing {} into {}", &count, &file, &resize);
+			Command::new(&command)
+				.args(&["-resize", &resize, &file, &file])
+				.output()
+				.expect("failed to execute process");
+		}
+		else {
+			Command::new(&command)
+				.args(&["-resize", &resize, &file, &file])
+				.output()
+				.expect("failed to execute process");
+		}
 	}
-	if &format.chars().count() > &1 {
-		println!("also converting to {}", &format);
-		Command::new(&command)
-			.args(&[&file, &new_file.to_string()])
-			.output()
-			.expect("failed to execute process");
-		println!("removing {}", &file);
-		fs::remove_file(&file);
+	if &format.chars().count() > &1 && &file != &new_file {
+		if pretty == true {
+			println!("({}): Converting {} into {}", &count, &file, &new_file);
+			Command::new(&command)
+				.args(&[&file, &new_file.to_string()])
+				.output()
+				.expect("failed to execute process");
+		}
+		else {
+			Command::new(&command)
+				.args(&[&file, &new_file.to_string()])
+				.output()
+				.expect("failed to execute process");
+		}
+		if &file != &new_file {
+			fs::remove_file(&file);
+		}
 	}
 }
