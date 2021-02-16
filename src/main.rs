@@ -1,9 +1,11 @@
 extern crate regex;
+extern crate bytesize;
 use std::process::Command;
 use std::path::Path;
 use std::{env, fs};
 use clap::{App, Arg};
 use regex::Regex;
+use bytesize::ByteSize;
 
 fn main() {
    	let mut files = Vec::new();
@@ -95,9 +97,19 @@ fn main() {
     		std::process::exit(0);
     	}
     }
+    let mut total_size = 0; 
     for (i, x) in files.iter().enumerate() {
-    	convert(command_str.clone(), x.to_string(), 
-    		resize.to_string(), i+1, pretty, format.to_string());
+    	if pretty {
+    		total_size = total_size + convert(command_str.clone(), x.to_string(),
+    			resize.to_string(), i+1, pretty, format.to_string());
+    	}
+    	else {
+    		convert(command_str.clone(), x.to_string(), 
+    			resize.to_string(), i+1, pretty, format.to_string());
+    	}
+    }
+    if pretty {
+    	println!("Total saved: {}", ByteSize(total_size));
     }
 }
 
@@ -127,41 +139,40 @@ fn find_binary_linux() -> String {
     "/usr/bin/convert".to_string()
 }
 
-fn convert(command: String, file: String, resize: String, count: usize, pretty: bool, format: String) {
+fn convert(command: String, file: String, resize: String, count: usize, pretty: bool, format: String) -> u64 {
 	let file_format = Regex::new(r"\.(?i)(jpg|jpeg|gif|png)$").unwrap();
 	let mut new_file = file_format.replace(&file, "").to_string();
 	new_file.push_str(&format);
+	let start_file_metadata = fs::metadata(&file);
+	let start_file_size = start_file_metadata.unwrap().len();
+	let mut total_size = start_file_size;
 	if &resize.chars().count() > &1 {
 		if pretty == true {
 			println!("({}): Resizing {} into {}", &count, &file, &resize);
-			Command::new(&command)
-				.args(&["-resize", &resize, &file, &file])
-				.output()
-				.expect("failed to execute process");
 		}
-		else {
-			Command::new(&command)
-				.args(&["-resize", &resize, &file, &file])
-				.output()
-				.expect("failed to execute process");
-		}
+		Command::new(&command)
+			.args(&["-resize", &resize, &file, &file])
+			.output()
+			.expect("failed to execute process");
 	}
 	if &format.chars().count() > &1 && &file != &new_file {
 		if pretty == true {
 			println!("({}): Converting {} into {}", &count, &file, &new_file);
-			Command::new(&command)
-				.args(&[&file, &new_file.to_string()])
-				.output()
-				.expect("failed to execute process");
 		}
-		else {
-			Command::new(&command)
-				.args(&[&file, &new_file.to_string()])
-				.output()
-				.expect("failed to execute process");
+		Command::new(&command)
+			.args(&[&file, &new_file.to_string()])
+			.output()
+			.expect("failed to execute process");
+		if pretty == true {
+			let imgSize2 = fs::metadata(&new_file);
+			println!("{:?}", ByteSize(imgSize2.unwrap().len()));
 		}
-		if &file != &new_file {
+		if !file.eq(&new_file) {
 			fs::remove_file(&file);
 		}
 	}
+	let new_file_metadata = fs::metadata(&new_file);
+	let new_file_size = new_file_metadata.unwrap().len();
+	total_size = start_file_size - new_file_size;
+	return total_size
 }
