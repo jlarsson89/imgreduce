@@ -173,6 +173,11 @@ fn convert(command: String, file: String, resize: String, count: usize, pretty: 
 	}
 	let new_file_metadata = fs::metadata(&new_file);
 	let new_file_size = new_file_metadata.unwrap().len();
-	total_size = start_file_size - new_file_size;
+	if start_file_size > new_file_size {
+		total_size = start_file_size - new_file_size;
+	}
+	else {
+		total_size = new_file_size - start_file_size;
+	}
 	return total_size
 }
