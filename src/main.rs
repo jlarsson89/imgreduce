@@ -146,6 +146,7 @@ fn convert(command: String, file: String, resize: String, count: usize, pretty: 
 	let start_file_metadata = fs::metadata(&file);
 	let start_file_size = start_file_metadata.unwrap().len();
 	let mut total_size = start_file_size;
+	let mut new_file_metadata = fs::metadata(&file);
 	if &resize.chars().count() > &1 {
 		if pretty == true {
 			println!("({}): Resizing {} into {}", &count, &file, &resize);
@@ -169,9 +170,12 @@ fn convert(command: String, file: String, resize: String, count: usize, pretty: 
 		}
 		if !file.eq(&new_file) {
 			fs::remove_file(&file);
+			new_file_metadata = fs::metadata(&new_file);
+		}
+		else {
+			new_file_metadata = fs::metadata(&file);
 		}
 	}
-	let new_file_metadata = fs::metadata(&new_file);
 	let new_file_size = new_file_metadata.unwrap().len();
 	if start_file_size > new_file_size {
 		total_size = start_file_size - new_file_size;
