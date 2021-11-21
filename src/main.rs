@@ -2,32 +2,58 @@ extern crate regex;
 extern crate bytesize;
 use std::process::Command;
 use std::path::Path;
-use std::{env, fs};
+use std::{env, fs, io};
+use std::sync::Mutex;
 use clap::{App, Arg};
 use regex::Regex;
 use bytesize::ByteSize;
 
+#[macro_use]
+extern crate lazy_static;
+
+#[derive(Debug)]
+pub struct Files {
+	path: String,
+	name: String,
+	size: i64,
+}
+
+impl Files {
+	fn update_path(&mut self, new_path: String) {
+		self.path = new_path;
+	}
+	fn update_name(&mut self, new_name: String) {
+		self.name = new_name;
+	}
+	fn update_size(&mut self, new_size: i64) {
+		self.size = new_size;
+	}
+}
+
+lazy_static! {
+	static ref FILES: Mutex<Vec<Files>> = Mutex::new(vec![]);
+}
+
 fn main() {
-   	let mut files = Vec::new();
-	let mut count = 0;
 	let mut command_str = "".to_string();
 	let mut resize = "";
 	let mut pretty = false;
 	let mut format = "";
+	let mut base = ".";
+	let mut recursion = false;
 	let file_format = Regex::new(r"^.*\.(?i)(jpg|jpeg|gif|png)$").unwrap();
 	let matches = App::new("imgreduce")
 		.arg(
 			Arg::with_name("dir")
 			.help("Directory")
 			.takes_value(true)
-			.required(true)
 			.short("d")
 			)
 		.arg(
 			Arg::with_name("resize")
 			.help("Resolution to resize to")
 			.takes_value(true)
-			.short("r")
+			.short("s")
 			)
 		.arg(
 			Arg::with_name("format")
@@ -35,6 +61,12 @@ fn main() {
 			.takes_value(true)
 			.possible_values(&[".jpg", ".jpeg", ".gif", ".png"])
 			.short("f")
+			)
+		.arg(
+			Arg::with_name("recursion")
+			.help("Enable recursion")
+			.takes_value(false)
+			.short("r")
 			)
 		.arg(
 			Arg::with_name("pretty")
@@ -61,31 +93,13 @@ fn main() {
     	}
     }
     if matches.is_present("dir") {
-    	if let Some(ref location) = matches.value_of("dir") {
-		    for entry in fs::read_dir(location).unwrap() {
-		        let entry = entry.unwrap();
-		        let path = entry.path();
-		        if path.is_dir() {
-		        }
-		        else {
-		            let p = path.clone().into_os_string().into_string().unwrap();
-		            if file_format.is_match(&p) {
-		            	if os == "windows" {
-		            		let np = p.replace(r"\", "/");
-		            		count = count + 1;
-		            		files.push(np);
-		            	}
-		            	else {
-		            		count = count + 1;
-		            		files.push(p);
-		            	}
-		            }
-		        }
-		   	}
-    	}
+    	base = matches.value_of("dir").unwrap();
     }
     if matches.is_present("pretty") {
     	pretty = true;
+    }
+    if matches.is_present("recursion") {
+    	recursion = true;
     }
     if matches.is_present("format") {
     	let input = matches.value_of("format").unwrap();
@@ -97,20 +111,49 @@ fn main() {
     		std::process::exit(0);
     	}
     }
-    let mut total_size = 0; 
-    for (i, x) in files.iter().enumerate() {
+    if base != "." {
+    	add_files(base.to_string(), recursion);
+    }
+    else {
+    	add_files(base.to_string(), recursion);
+    }
+    let mut f = FILES.lock().unwrap();
+    if f.len() > 0 {
+    	let mut start_size = 0;
+    	for i in f.iter() {
+    		start_size += i.size;
+    	}
+    	if format != "" {
+    		for i in f.iter_mut() {
+    			convert_files(i, format.to_string(), command_str.clone(), pretty);
+    		}
+    	}
+    	if resize != "" {
+    		for i in f.iter_mut() {
+    			resize_files(i, resize.to_string(), command_str.clone(), pretty);
+    		}
+    	}
+    	let mut new_size = 0;
+    	for i in f.iter() {
+    		new_size += i.size;
+    	}
     	if pretty {
-    		total_size = total_size + convert(command_str.clone(), x.to_string(),
-    			resize.to_string(), i+1, pretty, format.to_string());
-    	}
-    	else {
-    		convert(command_str.clone(), x.to_string(), 
-    			resize.to_string(), i+1, pretty, format.to_string());
-    	}
-    }
-    if pretty {
-    	println!("Total saved: {}", ByteSize(total_size));
-    }
+    		println!("A total of {} images have been found.", f.len());
+	    	if start_size != new_size {
+	    		print!("Before modification, they used a total of {}, after modification ", ByteSize(start_size as u64));
+	    		if start_size > new_size {
+	    			print!("they use {}, ", ByteSize(new_size as u64));
+	    			let diff = start_size - new_size;
+	    			print!("saving a total of {}.\n", ByteSize(diff as u64));
+	    		}
+	    		else {
+	    			print!("they use {}, ", ByteSize(new_size as u64));
+	    			let diff = new_size - start_size;
+	    			print!("using {} more disk space.\n", ByteSize(diff as u64));
+	    		}
+	    	}
+	    }
+	}
 }
 
 fn find_binary_windows() -> String {
@@ -119,7 +162,6 @@ fn find_binary_windows() -> String {
         .output()
         .expect("failed to execute process");
     let find = String::from_utf8(find.stdout).unwrap();
-    let mut n = "";
     for i in find.split("\n") {
     	let mut n = i.to_string();
     	n.pop();
@@ -128,7 +170,6 @@ fn find_binary_windows() -> String {
 	    }
     }
     std::process::exit(0);
-    //n.to_string()
 }
 
 fn find_binary_linux() -> String {
@@ -139,49 +180,77 @@ fn find_binary_linux() -> String {
     "/usr/bin/convert".to_string()
 }
 
-fn convert(command: String, file: String, resize: String, count: usize, pretty: bool, format: String) -> u64 {
+fn add_files(base: String, recursion: bool) {
+	if Path::new(&base).exists() {
+		for entry_res in fs::read_dir(&base).unwrap() {
+			let entry = entry_res.unwrap();
+			let file_name_buf = entry.file_name();
+			let file_name = file_name_buf.to_str().unwrap();
+			if entry.file_type().unwrap().is_file() && !file_name.starts_with(".") {
+    			let re = Regex::new(r"\.(?i)(jpg|jpeg|gif|png)$").unwrap();
+    			let metadata = fs::metadata(entry.path());
+    			let s: i64 = metadata.unwrap().len() as i64;
+    			let path = entry.path();
+    			let p = path.clone().into_os_string().into_string().unwrap();
+				if re.is_match(&p) {
+					let f: Files = Files{path: p, name: file_name.to_string(), size: s};
+					FILES.lock().unwrap().push(f);
+				}
+			}
+			if recursion && entry.file_type().unwrap().is_dir() && !file_name.starts_with(".") {
+				let mut dir = entry.path().display().to_string();
+				dir.push('/');
+				if !is_folder_empty(&dir).unwrap() {
+					add_files(dir, recursion);
+				}
+			}
+		}
+	}
+}
+
+fn convert_files(i: &mut Files, format: String, command: String, pretty: bool) {
+	let start_path = &i.path;
+	let start_name = &i.name;
 	let file_format = Regex::new(r"\.(?i)(jpg|jpeg|gif|png)$").unwrap();
-	let mut new_file = file_format.replace(&file, "").to_string();
+	let mut new_file = file_format.replace(&start_name, "").to_string();
+	let mut new_path = file_format.replace(&start_path, "").to_string();
 	new_file.push_str(&format);
-	let start_file_metadata = fs::metadata(&file);
-	let start_file_size = start_file_metadata.unwrap().len();
-	let mut total_size = start_file_size;
-	let mut new_file_metadata = fs::metadata(&file);
-	if &resize.chars().count() > &1 {
-		if pretty == true {
-			println!("({}): Resizing {} into {}", &count, &file, &resize);
-		}
-		Command::new(&command)
-			.args(&["-resize", &resize, &file, &file])
-			.output()
-			.expect("failed to execute process");
-	}
-	if &format.chars().count() > &1 && &file != &new_file {
-		if pretty == true {
-			println!("({}): Converting {} into {}", &count, &file, &new_file);
-		}
-		Command::new(&command)
-			.args(&[&file, &new_file.to_string()])
-			.output()
-			.expect("failed to execute process");
-		if pretty == true {
-			let imgSize2 = fs::metadata(&new_file);
-			println!("{:?}", ByteSize(imgSize2.unwrap().len()));
-		}
-		if !file.eq(&new_file) {
-			fs::remove_file(&file);
-			new_file_metadata = fs::metadata(&new_file);
-		}
-		else {
-			new_file_metadata = fs::metadata(&file);
-		}
-	}
-	let new_file_size = new_file_metadata.unwrap().len();
-	if start_file_size > new_file_size {
-		total_size = start_file_size - new_file_size;
+	new_path.push_str(&format);
+	if start_path.eq(&new_path) && start_name.eq(&new_file) {
+
 	}
 	else {
-		total_size = new_file_size - start_file_size;
+		if pretty {
+			println!("Converting {} into {}.", start_name, new_file);
+		}
+		Command::new(&command)
+			.args(&[&start_path, &new_path.to_string()])
+			.output()
+			.expect("failed to execute process");
+		fs::remove_file(&start_path);
+		let metadata = fs::metadata(&new_path);
+		let s: i64 = metadata.unwrap().len() as i64;
+		i.update_path(new_path);
+		i.update_name(new_file);
+		i.update_size(s);
 	}
-	return total_size
+}
+
+fn resize_files(i: &mut Files, new_resolution: String, command: String, pretty: bool) {
+	let start_path = &i.path;
+	let start_name = &i.name;
+	if pretty {
+		println!("Resizing {} to {}.", start_name, new_resolution);
+	}
+	Command::new(&command)
+			.args(&["-resize", &new_resolution, &start_path, &start_path])
+			.output()
+			.expect("failed to execute process");
+	let metadata = fs::metadata(&start_path);
+	let s: i64 = metadata.unwrap().len() as i64;
+	i.update_size(s);
+}
+
+fn is_folder_empty(path: impl AsRef<Path>) -> io::Result<bool> {
+	Ok(fs::read_dir(path)?.take(1).count() == 0)
 }
