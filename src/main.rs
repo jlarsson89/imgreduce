@@ -111,12 +111,7 @@ fn main() {
     		std::process::exit(0);
     	}
     }
-    if base != "." {
-    	add_files(base.to_string(), recursion);
-    }
-    else {
-    	add_files(base.to_string(), recursion);
-    }
+    add_files(base.to_string(), recursion);
     let mut f = FILES.lock().unwrap();
     if f.len() > 0 {
     	let mut start_size = 0;
